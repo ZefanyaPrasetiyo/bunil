@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
+import { jwt } from "better-auth";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,7 +13,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "Username dan password wajib diisi",
+          message: "username dan password wajib diisi",
         },
         {
           status: 400,
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findFirst({
       where: {
-        nama: username,
+        username: username,
       },
     });
 
@@ -50,16 +51,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const validPassword = await bcrypt.compare(
+    const validpassword = await bcrypt.compare(
       password,
       user.password
     );
 
-    if (!validPassword) {
+    if (!validpassword) {
       return NextResponse.json(
         {
           success: false,
-          message: "Password salah",
+          message: "password salah",
         },
         {
           status: 401,
@@ -72,8 +73,8 @@ export async function POST(req: NextRequest) {
       message: "Login berhasil",
       user: {
         id: user.id,
-        nama: user.nama,
-        no_spmb: user.no_spmb,
+        username: user.username,
+        password: user.password,
         role: user.role,
         jurusan: user.jurusan,
       },

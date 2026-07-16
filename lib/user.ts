@@ -1,4 +1,5 @@
 import prisma from "./prisma";
+import bcrypt from "bcryptjs";
 import type { Jurusan, Role } from "../app/generated/prisma/client";
 
 type CreateUserInput = {
@@ -9,22 +10,13 @@ type CreateUserInput = {
   role: Role;
 };
 
-type User = {
-  no_spmb?: string;
-  nama: string;
-  password?: string;
-  jurusan?: Jurusan | null;
-  role: Role;
-};
-
-
 type UpdateUserInput = Partial<CreateUserInput>;
 
 export async function getUsers() {
   return prisma.user.findMany({
     orderBy: { nama: "asc" },
     include: {
-      nilai: true
+      nilai: true,
     },
   });
 }
@@ -36,11 +28,15 @@ export async function getUserById(id: string) {
 }
 
 export async function createUser(data: CreateUserInput) {
+  const hashedPassword = data.password
+    ? await bcrypt.hash(data.password, 10)
+    : undefined;
+
   return prisma.user.create({
     data: {
       no_spmb: data.no_spmb,
       nama: data.nama,
-      password: data.password,
+      password: hashedPassword,
       jurusan: data.jurusan,
       role: data.role,
     },
@@ -48,9 +44,13 @@ export async function createUser(data: CreateUserInput) {
 }
 
 export async function updateUser(id: string, data: UpdateUserInput) {
-  const cleanData = Object.fromEntries(
-    Object.entries(data).filter(([, value]) => value !== undefined)
-  ) as UpdateUserInput;
+  const cleanData = {
+    ...data,
+  };
+
+  if (cleanData.password) {
+    cleanData.password = await bcrypt.hash(cleanData.password, 10);
+  }
 
   return prisma.user.update({
     where: { id },

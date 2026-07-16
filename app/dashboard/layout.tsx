@@ -1,6 +1,9 @@
+"use client"
+
 import { AppSidebar } from "@/components/app-sidebar"
 import { ThemeToggle } from "@/components/ui/themetoggle"
 import { Separator } from "@/components/ui/separator"
+import { useEffect } from "react"
 import {
   SidebarInset,
   SidebarProvider,
@@ -12,6 +15,20 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
+
+  useEffect(() => {
+  async function getSession() {
+    const res = await fetch("/api/session", {
+      credentials: "include",
+    });
+
+    const session = await res.json();
+
+    console.log(session);
+  }
+
+  getSession();
+}, []);
   return (
     <SidebarProvider>
       <AppSidebar />

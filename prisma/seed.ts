@@ -46,9 +46,8 @@ async function main() {
 
   const budi = await prisma.user.create({
     data: {
-      nama: "Budi",
-      no_spmb: "SPMB001",
-      password: "123456",
+      username: "Budi",
+      password: "SPMB001",
       jurusan: Jurusan.RPL,
       role: Role.USER,
     },
@@ -56,9 +55,8 @@ async function main() {
 
   const andi = await prisma.user.create({
     data: {
-      nama: "Andi",
-      no_spmb: "SPMB002",
-      password: "123456",
+      username: "Andi",
+      password: "SPMB002",
       jurusan: Jurusan.DKV,
       role: Role.USER,
     },
@@ -66,7 +64,7 @@ async function main() {
 
   const admin = await prisma.user.create({
     data: {
-      nama: "Administrator",
+      username: "Administrator",
       password: "admin123",
       role: Role.ADMIN,
     },
