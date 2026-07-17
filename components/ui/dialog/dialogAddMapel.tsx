@@ -8,18 +8,22 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 export type MapelFormValues = { nama: string };
 
 interface DialogTambahMapelProps {
-    onSubmit?: (values: MapelFormValues) => void;
+    onSubmit?: (values: MapelFormValues) => void | Promise<void>;
 }
 
 export function DialogTambahMapel({ onSubmit }: DialogTambahMapelProps) {
     const [open, setOpen] = useState(false);
     const [nama, setNama] = useState("");
 
-    function handleSubmit(event: React.FormEvent) {
+    async function handleSubmit(event: React.FormEvent) {
         event.preventDefault();
-        onSubmit?.({ nama: nama.trim() });
-        setNama("");
-        setOpen(false);
+        try {
+            await onSubmit?.({ nama: nama.trim() });
+            setNama("");
+            setOpen(false);
+        } catch {
+            // Pesan kegagalan ditampilkan oleh halaman pemanggil.
+        }
     }
 
     return (

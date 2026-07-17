@@ -1,21 +1,137 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { KeyRound, Search } from "lucide-react";
 import { TableManajemenAkun, type ManajemenAkunRow } from "@/components/application/table/table-manajemenAkun";
 import { DialogTambahSiswa } from "@/components/ui/dialog/dialogAddSiswa";
 
-const dummyData: ManajemenAkunRow[] = [
-    { id: "1", no: 1, spmb: "SPMB-0001", nama: "Ahmad Fauzi", jurusan: "RPL", password: "ahmad2026" },
-    { id: "2", no: 2, spmb: "SPMB-0002", nama: "Siti Nurhaliza", jurusan: "TKJ", password: "siti2026" },
-    { id: "3", no: 3, spmb: "SPMB-0003", nama: "Budi Santoso", jurusan: "RPL", password: "budi2026" },
-    { id: "4", no: 4, spmb: "SPMB-0004", nama: "Dewi Lestari", jurusan: "Multimedia", password: "dewi2026" },
-    { id: "5", no: 5, spmb: "SPMB-0005", nama: "Rizky Ramadhan", jurusan: "TKJ", password: "rizky2026" },
-];
+type UserApi = {
+    id: string;
+    username: string;
+    no_spmb: string | null;
+    nama: string | null;
+    jurusan: string | null;
+    role: "USER" | "ADMIN";
+};
+
+type SiswaPayload = {
+    spmb: string;
+    nama: string;
+    jurusan: string;
+    password?: string;
+};
+
+function toTableRows(users: UserApi[]): ManajemenAkunRow[] {
+    return users
+        .filter((user) => user.role === "USER")
+        .map((user, index) => ({
+            id: user.id,
+            no: index + 1,
+            spmb: user.no_spmb ?? user.username,
+            nama: user.nama ?? "-",
+            jurusan: user.jurusan ?? "-",
+            password: "••••••••",
+        }));
+}
+
+async function getErrorMessage(response: Response) {
+    const body = (await response.json().catch(() => null)) as { error?: string } | null;
+    return body?.error ?? "Terjadi kesalahan saat memproses akun siswa.";
+}
 
 export default function Dashboard() {
     const [query, setQuery] = useState("");
-    const [data, setData] = useState(dummyData);
+    const [data, setData] = useState<ManajemenAkunRow[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    const loadUsers = useCallback(async () => {
+        setIsLoading(true);
+        setError("");
+
+        try {
+            const response = await fetch("/api/user", { cache: "no-store" });
+            if (!response.ok) throw new Error(await getErrorMessage(response));
+
+            setData(toTableRows((await response.json()) as UserApi[]));
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Gagal memuat akun siswa.");
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        const timer = window.setTimeout(() => {
+            void loadUsers();
+        }, 0);
+
+        return () => window.clearTimeout(timer);
+    }, [loadUsers]);
+
+    async function createSiswa(valuesList: SiswaPayload[]) {
+        setError("");
+        const created = await Promise.all(valuesList.map(async (values) => {
+            const spmb = values.spmb.trim();
+            const response = await fetch("/api/user", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    no_spmb: spmb,
+                    username: spmb,
+                    nama: values.nama.trim(),
+                    jurusan: values.jurusan,
+                    password: values.password,
+                    role: "USER",
+                }),
+            });
+            if (!response.ok) throw new Error(await getErrorMessage(response));
+            return (await response.json()) as UserApi;
+        })).catch((err: unknown) => {
+            const message = err instanceof Error ? err.message : "Gagal menambahkan akun siswa.";
+            setError(message);
+            throw new Error(message);
+        });
+
+        setData((current) => [...current, ...toTableRows(created).map((row, index) => ({ ...row, no: current.length + index + 1 }))]);
+    }
+
+    async function updateSiswa(id: string, values: SiswaPayload) {
+        setError("");
+        const spmb = values.spmb.trim();
+        const response = await fetch(`/api/user/${encodeURIComponent(id)}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                no_spmb: spmb,
+                username: spmb,
+                nama: values.nama.trim(),
+                jurusan: values.jurusan,
+                ...(values.password ? { password: values.password } : {}),
+            }),
+        });
+        if (!response.ok) {
+            const message = await getErrorMessage(response);
+            setError(message);
+            throw new Error(message);
+        }
+
+        const updated = (await response.json()) as UserApi;
+        setData((current) => current.map((row) => row.id === id ? { ...toTableRows([updated])[0], no: row.no } : row));
+    }
+
+    async function deleteSiswa(id: string) {
+        setError("");
+        const response = await fetch(`/api/user/${encodeURIComponent(id)}`, { method: "DELETE" });
+        if (!response.ok) {
+            const message = await getErrorMessage(response);
+            setError(message);
+            throw new Error(message);
+        }
+
+        setData((current) => current.filter((row) => row.id !== id).map((row, index) => ({ ...row, no: index + 1 })));
+    }
+
     const filteredData = data.filter((row) => [row.nama, row.jurusan, row.spmb].join(" ").toLowerCase().includes(query.toLowerCase()));
 
     return (
@@ -31,14 +147,7 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                <DialogTambahSiswa
-                    onSubmit={(values) => {
-                        setData((current) => [
-                            ...current,
-                            { id: crypto.randomUUID(), no: current.length + 1, ...values },
-                        ]);
-                    }}
-                />
+                <DialogTambahSiswa onSubmit={createSiswa} />
             </div>
 
             <div className="rounded-2xl border border-border bg-card p-4">
@@ -53,15 +162,12 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            <TableManajemenAkun
-                data={filteredData}
-                onEdit={(id, values) => {
-                    setData((current) => current.map((row) => (row.id === id ? { ...row, ...values } : row)));
-                }}
-                onDelete={(id) => {
-                    setData((current) => current.filter((row) => row.id !== id).map((row, index) => ({ ...row, no: index + 1 })));
-                }}
-            />
+            {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+            {isLoading ? (
+                <p className="text-sm text-muted-foreground">Memuat akun siswa...</p>
+            ) : (
+                <TableManajemenAkun data={filteredData} onEdit={updateSiswa} onDelete={deleteSiswa} />
+            )}
         </div>
     );
 }

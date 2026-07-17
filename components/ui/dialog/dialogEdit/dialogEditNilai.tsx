@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog/dialog";
 
 type MapelOption = { id: string; nama: string };
+const jurusanOptions = ["DKV", "RPL", "ANIMASI", "TKJ", "BC", "TE"];
 
 export type NilaiSiswaUpdate = {
     spmb: string;
@@ -31,7 +32,7 @@ type NilaiSiswaEditable = Omit<NilaiSiswaUpdate, "nilai"> & {
 interface DialogEditNilaiSiswaProps {
     row: NilaiSiswaEditable;
     mapelList: MapelOption[];
-    onSubmit?: (values: NilaiSiswaUpdate) => void;
+    onSubmit?: (values: NilaiSiswaUpdate) => void | Promise<void>;
 }
 
 export function DialogEditNilaiSiswa({ row, mapelList, onSubmit }: DialogEditNilaiSiswaProps) {
@@ -43,10 +44,14 @@ export function DialogEditNilaiSiswa({ row, mapelList, onSubmit }: DialogEditNil
         setOpen(nextOpen);
     }
 
-    function handleSubmit(event: React.FormEvent) {
+    async function handleSubmit(event: React.FormEvent) {
         event.preventDefault();
-        onSubmit?.(values);
-        setOpen(false);
+        try {
+            await onSubmit?.(values);
+            setOpen(false);
+        } catch {
+            // Pesan kegagalan ditampilkan oleh halaman pemanggil.
+        }
     }
 
     return (
@@ -95,9 +100,7 @@ export function DialogEditNilaiSiswa({ row, mapelList, onSubmit }: DialogEditNil
                                 onChange={(event) => setValues((current) => ({ ...current, jurusan: event.target.value }))}
                                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                             >
-                                <option value="RPL">RPL</option>
-                                <option value="TKJ">TKJ</option>
-                                <option value="Multimedia">Multimedia</option>
+                                {jurusanOptions.map((jurusan) => <option key={jurusan} value={jurusan}>{jurusan}</option>)}
                             </select>
                         </Field>
 
@@ -142,15 +145,19 @@ export function DialogEditNilaiSiswa({ row, mapelList, onSubmit }: DialogEditNil
 
 interface DialogHapusNilaiSiswaProps {
     nama: string;
-    onConfirm?: () => void;
+    onConfirm?: () => void | Promise<void>;
 }
 
 export function DialogHapusNilaiSiswa({ nama, onConfirm }: DialogHapusNilaiSiswaProps) {
     const [open, setOpen] = useState(false);
 
-    function handleConfirm() {
-        onConfirm?.();
-        setOpen(false);
+    async function handleConfirm() {
+        try {
+            await onConfirm?.();
+            setOpen(false);
+        } catch {
+            // Pesan kegagalan ditampilkan oleh halaman pemanggil.
+        }
     }
 
     return (

@@ -14,20 +14,20 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog/dialog";
 
-const jurusanOptions = ["RPL", "TKJ", "Multimedia"];
+const jurusanOptions = ["DKV", "RPL", "ANIMASI", "TKJ", "BC", "TE"];
 
 export type SiswaUpdate = {
     spmb: string;
     nama: string;
     jurusan: string;
-    password: string;
+    password?: string;
 };
 
 type SiswaEditable = SiswaUpdate & { id: string };
 
 interface DialogEditSiswaProps {
     row: SiswaEditable;
-    onSubmit?: (values: SiswaUpdate) => void;
+    onSubmit?: (values: SiswaUpdate) => void | Promise<void>;
 }
 
 export function DialogEditSiswa({ row, onSubmit }: DialogEditSiswaProps) {
@@ -39,10 +39,14 @@ export function DialogEditSiswa({ row, onSubmit }: DialogEditSiswaProps) {
         setOpen(nextOpen);
     }
 
-    function handleSubmit(event: React.FormEvent) {
+    async function handleSubmit(event: React.FormEvent) {
         event.preventDefault();
-        onSubmit?.(values);
-        setOpen(false);
+        try {
+            await onSubmit?.(values);
+            setOpen(false);
+        } catch {
+            // Pesan kegagalan ditampilkan oleh halaman pemanggil.
+        }
     }
 
     return (
@@ -69,7 +73,7 @@ export function DialogEditSiswa({ row, onSubmit }: DialogEditSiswaProps) {
                             <input id={`edit-nama-${row.id}`} required value={values.nama} onChange={(event) => setValues((current) => ({ ...current, nama: event.target.value }))} className={inputClassName} />
                         </Field>
                         <Field label="Password" htmlFor={`edit-password-${row.id}`} className="sm:col-span-2">
-                            <input id={`edit-password-${row.id}`} required value={values.password} onChange={(event) => setValues((current) => ({ ...current, password: event.target.value }))} className={inputClassName} />
+                            <input id={`edit-password-${row.id}`} type="password" value={values.password ?? ""} onChange={(event) => setValues((current) => ({ ...current, password: event.target.value }))} placeholder="Kosongkan jika tidak diubah" className={inputClassName} />
                         </Field>
                     </div>
 
@@ -85,15 +89,19 @@ export function DialogEditSiswa({ row, onSubmit }: DialogEditSiswaProps) {
 
 interface DialogHapusSiswaProps {
     nama: string;
-    onConfirm?: () => void;
+    onConfirm?: () => void | Promise<void>;
 }
 
 export function DialogHapusSiswa({ nama, onConfirm }: DialogHapusSiswaProps) {
     const [open, setOpen] = useState(false);
 
-    function handleConfirm() {
-        onConfirm?.();
-        setOpen(false);
+    async function handleConfirm() {
+        try {
+            await onConfirm?.();
+            setOpen(false);
+        } catch {
+            // Pesan kegagalan ditampilkan oleh halaman pemanggil.
+        }
     }
 
     return (
@@ -116,7 +124,7 @@ export function DialogHapusSiswa({ nama, onConfirm }: DialogHapusSiswaProps) {
 const inputClassName = "w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none";
 
 function createValues(row: SiswaEditable): SiswaUpdate {
-    return { spmb: row.spmb, nama: row.nama, jurusan: row.jurusan, password: row.password };
+    return { spmb: row.spmb, nama: row.nama, jurusan: row.jurusan, password: "" };
 }
 
 function Field({ label, htmlFor, children, className }: { label: string; htmlFor: string; children: React.ReactNode; className?: string }) {

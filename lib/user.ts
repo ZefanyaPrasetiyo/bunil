@@ -6,7 +6,7 @@ type CreateUserInput = {
   no_spmb?: string;
   nama: string;
   username: string;
-  password?: string;
+  password: string;
   jurusan?: Jurusan | null;
   role: Role;
 };
@@ -29,9 +29,7 @@ export async function getUserById(id: string) {
 }
 
 export async function createUser(data: CreateUserInput) {
-  const hashedPassword = data.password
-    ? await bcrypt.hash(data.password, 10)
-    : undefined;
+  const hashedPassword = await bcrypt.hash(data.password, 10);
 
   return prisma.user.create({
     data: {

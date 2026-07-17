@@ -17,8 +17,8 @@ export function TableMasterMapel({
   onDelete,
 }: {
   data: MasterMapelRow[];
-  onEdit?: (id: string, values: MapelUpdate) => void;
-  onDelete?: (id: string) => void;
+  onEdit?: (id: string, values: MapelUpdate) => void | Promise<void>;
+  onDelete?: (id: string) => void | Promise<void>;
 }) {
   return (
     <TableCard.Root>

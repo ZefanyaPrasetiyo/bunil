@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BookOpen, Search } from "lucide-react";
 import {
   TableMasterMapel,
@@ -8,16 +8,88 @@ import {
 } from "@/components/application/table/table-masterMapel";
 import { DialogTambahMapel } from "@/components/ui/dialog/dialogAddMapel";
 
-const initialData: MasterMapelRow[] = [
-  { id: "1", no: 1, nama: "Matematika" },
-  { id: "2", no: 2, nama: "Bahasa Indonesia" },
-  { id: "3", no: 3, nama: "Bahasa Inggris" },
-  { id: "4", no: 4, nama: "IPA" },
-];
+type MataPelajaran = { id: string; nama: string };
+
+async function getErrorMessage(response: Response) {
+  const body = (await response.json().catch(() => null)) as { error?: string } | null;
+  return body?.error ?? "Terjadi kesalahan saat memproses data mata pelajaran.";
+}
 
 export default function MasterMapel() {
   const [query, setQuery] = useState("");
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState<MasterMapelRow[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const loadMataPelajaran = useCallback(async () => {
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/mata-pelajaran", { cache: "no-store" });
+      if (!response.ok) throw new Error(await getErrorMessage(response));
+
+      const mataPelajaran = (await response.json()) as MataPelajaran[];
+      setData(mataPelajaran.map((item, index) => ({ ...item, no: index + 1 })));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal memuat mata pelajaran.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadMataPelajaran();
+  }, [loadMataPelajaran]);
+
+  async function createMataPelajaran(values: { nama: string }) {
+    setError("");
+    const response = await fetch("/api/mata-pelajaran", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(values),
+    });
+    if (!response.ok) {
+      const message = await getErrorMessage(response);
+      setError(message);
+      throw new Error(message);
+    }
+
+    const created = (await response.json()) as MataPelajaran;
+    setData((current) => [...current, { ...created, no: current.length + 1 }]);
+  }
+
+  async function updateMataPelajaran(id: string, values: { nama: string }) {
+    setError("");
+    const response = await fetch("/api/mata-pelajaran", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...values }),
+    });
+    if (!response.ok) {
+      const message = await getErrorMessage(response);
+      setError(message);
+      throw new Error(message);
+    }
+
+    const updated = (await response.json()) as MataPelajaran;
+    setData((current) => current.map((row) => (row.id === id ? { ...row, ...updated } : row)));
+  }
+
+  async function deleteMataPelajaran(id: string) {
+    setError("");
+    const response = await fetch(`/api/mata-pelajaran?id=${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      const message = await getErrorMessage(response);
+      setError(message);
+      throw new Error(message);
+    }
+
+    setData((current) => current.filter((row) => row.id !== id).map((row, index) => ({ ...row, no: index + 1 })));
+  }
+
   const filteredData = data.filter((row) =>
     row.nama.toLowerCase().includes(query.toLowerCase()),
   );
@@ -38,14 +110,7 @@ export default function MasterMapel() {
             </p>
           </div>
         </div>
-        <DialogTambahMapel
-          onSubmit={(values) =>
-            setData((current) => [
-              ...current,
-              { id: crypto.randomUUID(), no: current.length + 1, ...values },
-            ])
-          }
-        />
+        <DialogTambahMapel onSubmit={createMataPelajaran} />
       </div>
       <div className="rounded-2xl border border-border bg-card p-4">
         <div className="relative w-full sm:max-w-sm">
@@ -58,21 +123,16 @@ export default function MasterMapel() {
           />
         </div>
       </div>
+      {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">Memuat mata pelajaran...</p>
+      ) : (
       <TableMasterMapel
         data={filteredData}
-        onEdit={(id, values) =>
-          setData((current) =>
-            current.map((row) => (row.id === id ? { ...row, ...values } : row)),
-          )
-        }
-        onDelete={(id) =>
-          setData((current) =>
-            current
-              .filter((row) => row.id !== id)
-              .map((row, index) => ({ ...row, no: index + 1 })),
-          )
-        }
+        onEdit={updateMataPelajaran}
+        onDelete={deleteMataPelajaran}
       />
+      )}
     </div>
   );
 }

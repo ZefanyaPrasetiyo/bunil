@@ -48,8 +48,8 @@ function getCellValue(row: ManajemenAkunRow, columnId: string) {
 
 interface TableManajemenAkunProps {
     data: ManajemenAkunRow[];
-    onEdit?: (id: string, values: SiswaUpdate) => void;
-    onDelete?: (id: string) => void;
+    onEdit?: (id: string, values: SiswaUpdate) => void | Promise<void>;
+    onDelete?: (id: string) => void | Promise<void>;
 }
 
 export function TableManajemenAkun({ data, onEdit, onDelete }: TableManajemenAkunProps) {

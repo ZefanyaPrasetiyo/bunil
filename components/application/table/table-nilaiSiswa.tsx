@@ -81,8 +81,8 @@ function getCellValue(row: NilaiSiswaRow, column: Column) {
 interface TableNilaiSiswaProps {
     mapelList: Mapel[];
     data: NilaiSiswaRow[];
-    onEdit?: (id: string, values: NilaiSiswaUpdate) => void;
-    onDelete?: (id: string) => void;
+    onEdit?: (id: string, values: NilaiSiswaUpdate) => void | Promise<void>;
+    onDelete?: (id: string) => void | Promise<void>;
 }
 
 export function TableNilaiSiswa({ mapelList, data, onEdit, onDelete }: TableNilaiSiswaProps) {
