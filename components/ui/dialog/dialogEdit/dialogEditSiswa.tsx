@@ -14,7 +14,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog/dialog";
 
-const jurusanOptions = ["RPL", "TKJ", "Multimedia"];
+const jurusanOptions = ["RPL", "TKJ", "DKV", "ANIMASI", "BC", "TE"];
 
 export type SiswaUpdate = {
     spmb: string;

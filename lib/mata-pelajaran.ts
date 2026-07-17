@@ -6,10 +6,29 @@ type CreateMataPelajaranInput = {
 
 type UpdateMataPelajaranInput = Partial<CreateMataPelajaranInput>;
 
-export async function getMataPelajarans() {
-  return prisma.mataPelajaran.findMany({
-    orderBy: { nama: "asc" },
-  });
+export async function getMataPelajarans(page = 1, limit = 10) {
+  const currentPage = Math.max(1, Number(page) || 1);
+  const currentLimit = Math.max(1, Number(limit) || 10);
+  const skip = (currentPage - 1) * currentLimit;
+
+  const [mataPelajarans, totalItems] = await prisma.$transaction([
+    prisma.mataPelajaran.findMany({
+      orderBy: { nama: "asc" },
+      skip,
+      take: currentLimit,
+    }),
+    prisma.mataPelajaran.count(),
+  ]);
+
+  return {
+    data: mataPelajarans,
+    pagination: {
+      page: currentPage,
+      limit: currentLimit,
+      totalItems,
+      totalPages: totalItems === 0 ? 0 : Math.ceil(totalItems / currentLimit),
+    },
+  };
 }
 
 export async function getMataPelajaranById(id: string) {

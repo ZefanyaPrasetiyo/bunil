@@ -13,13 +13,40 @@ type CreateUserInput = {
 
 type UpdateUserInput = Partial<CreateUserInput>;
 
-export async function getUsers() {
-  return prisma.user.findMany({
-    orderBy: { nama: "asc" },
-    include: {
-      nilai: true,
+export async function getUsers(page = 1, limit = 10) {
+  const currentPage = Math.max(1, Number(page) || 1);
+  const currentLimit = Math.max(1, Number(limit) || 10);
+  const skip = (currentPage - 1) * currentLimit;
+
+  const [users, totalItems] = await prisma.$transaction([
+    prisma.user.findMany({
+      orderBy: { nama: "asc" },
+      include: {
+        nilai: true,
+      },
+      skip,
+      take: currentLimit,
+    }),
+    prisma.user.count(),
+  ]);
+
+  return {
+    data: users,
+    pagination: {
+      page: currentPage,
+      limit: currentLimit,
+      totalItems,
+      totalPages: totalItems === 0 ? 0 : Math.ceil(totalItems / currentLimit),
     },
-  });
+  } satisfies {
+    data: typeof users;
+    pagination: {
+      page: number;
+      limit: number;
+      totalItems: number;
+      totalPages: number;
+    };
+  };
 }
 
 export async function getUserById(id: string) {
@@ -31,7 +58,7 @@ export async function getUserById(id: string) {
 export async function createUser(data: CreateUserInput) {
   const hashedPassword = data.password
     ? await bcrypt.hash(data.password, 10)
-    : undefined;
+    : "";
 
   return prisma.user.create({
     data: {
