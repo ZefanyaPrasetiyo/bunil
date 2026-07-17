@@ -4,12 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import { KeyRound, Search } from "lucide-react";
 import { TableManajemenAkun, type ManajemenAkunRow } from "@/components/application/table/table-manajemenAkun";
 import { DialogTambahSiswa } from "@/components/ui/dialog/dialogAddSiswa";
+// import type { SiswaUpdate } from "@/components/ui/dialog/dialogEdit/dialogEditSiswa";
 
 type UserApi = {
     id: string;
     username: string;
-    no_spmb: string | null;
-    nama: string | null;
+    name: string | null;
     jurusan: string | null;
     role: "USER" | "ADMIN";
 };
@@ -21,22 +21,24 @@ type SiswaPayload = {
     password?: string;
 };
 
+type UserListResponse = { data?: UserApi[]; message?: string; error?: string };
+type UserResponse = { data?: UserApi; message?: string; error?: string };
+
 function toTableRows(users: UserApi[]): ManajemenAkunRow[] {
-    return users
+    return (Array.isArray(users) ? users : [])
         .filter((user) => user.role === "USER")
         .map((user, index) => ({
             id: user.id,
             no: index + 1,
-            spmb: user.no_spmb ?? user.username,
-            nama: user.nama ?? "-",
+            spmb: "••••••••",
+            nama: user.name ?? user.username,
             jurusan: user.jurusan ?? "-",
-            password: "••••••••",
         }));
 }
 
 async function getErrorMessage(response: Response) {
-    const body = (await response.json().catch(() => null)) as { error?: string } | null;
-    return body?.error ?? "Terjadi kesalahan saat memproses akun siswa.";
+    const body = (await response.json().catch(() => null)) as { error?: string; message?: string } | null;
+    return body?.error ?? body?.message ?? "Terjadi kesalahan saat memproses akun siswa.";
 }
 
 export default function Dashboard() {
@@ -50,10 +52,11 @@ export default function Dashboard() {
         setError("");
 
         try {
-            const response = await fetch("/api/user", { cache: "no-store" });
+            const response = await fetch("/api/user?page=1&limit=200", { cache: "no-store" });
             if (!response.ok) throw new Error(await getErrorMessage(response));
 
-            setData(toTableRows((await response.json()) as UserApi[]));
+            const payload = (await response.json()) as UserListResponse;
+            setData(toTableRows(payload.data ?? []));
         } catch (err) {
             setError(err instanceof Error ? err.message : "Gagal memuat akun siswa.");
         } finally {
@@ -72,21 +75,21 @@ export default function Dashboard() {
     async function createSiswa(valuesList: SiswaPayload[]) {
         setError("");
         const created = await Promise.all(valuesList.map(async (values) => {
-            const spmb = values.spmb.trim();
             const response = await fetch("/api/user", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    no_spmb: spmb,
-                    username: spmb,
-                    nama: values.nama.trim(),
+                    username: values.nama.trim(),
+                    name: values.nama.trim(),
                     jurusan: values.jurusan,
                     password: values.password,
                     role: "USER",
                 }),
             });
             if (!response.ok) throw new Error(await getErrorMessage(response));
-            return (await response.json()) as UserApi;
+            const payload = (await response.json()) as UserResponse;
+            if (!payload.data) throw new Error("Data akun siswa tidak ditemukan pada respons server.");
+            return payload.data;
         })).catch((err: unknown) => {
             const message = err instanceof Error ? err.message : "Gagal menambahkan akun siswa.";
             setError(message);
@@ -98,14 +101,12 @@ export default function Dashboard() {
 
     async function updateSiswa(id: string, values: SiswaPayload) {
         setError("");
-        const spmb = values.spmb.trim();
         const response = await fetch(`/api/user/${encodeURIComponent(id)}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                no_spmb: spmb,
-                username: spmb,
-                nama: values.nama.trim(),
+                username: values.nama.trim(),
+                name: values.nama.trim(),
                 jurusan: values.jurusan,
                 ...(values.password ? { password: values.password } : {}),
             }),

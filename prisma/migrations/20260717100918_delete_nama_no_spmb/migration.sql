@@ -1,0 +1,10 @@
+/*
+  Warnings:
+
+  - You are about to drop the column `nama` on the `user` table. All the data in the column will be lost.
+  - You are about to drop the column `no_spmb` on the `user` table. All the data in the column will be lost.
+
+*/
+-- AlterTable
+ALTER TABLE "user" DROP COLUMN "nama",
+DROP COLUMN "no_spmb";

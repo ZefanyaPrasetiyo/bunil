@@ -1,5 +1,7 @@
 "use client";
+import { useState } from "react";
 import { Table, TableCard } from "@/components/application/table/table";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import {
   DialogEditMapel,
   DialogHapusMapel,
@@ -20,6 +22,12 @@ export function TableMasterMapel({
   onEdit?: (id: string, values: MapelUpdate) => void | Promise<void>;
   onDelete?: (id: string) => void | Promise<void>;
 }) {
+  const rowsPerPage = 10;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.ceil(data.length / rowsPerPage);
+  const currentPage = Math.min(page, Math.max(totalPages, 1));
+  const paginatedData = data.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+
   return (
     <TableCard.Root>
       <TableCard.Header
@@ -34,7 +42,7 @@ export function TableMasterMapel({
             </Table.Head>
           )}
         </Table.Header>
-        <Table.Body items={data}>
+        <Table.Body items={paginatedData}>
           {(row) => (
             <Table.Row id={row.id} columns={columns}>
               {(column) => (
@@ -61,6 +69,17 @@ export function TableMasterMapel({
           )}
         </Table.Body>
       </Table>
+      {totalPages > 1 && (
+        <Pagination className="border-t border-border px-4 py-3 md:px-6">
+          <PaginationContent>
+            <PaginationItem><PaginationPrevious href="#" onClick={(event) => { event.preventDefault(); setPage((current) => Math.max(1, current - 1)); }} aria-disabled={currentPage === 1} className={currentPage === 1 ? "pointer-events-none opacity-50" : undefined} /></PaginationItem>
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
+              <PaginationItem key={pageNumber}><PaginationLink href="#" isActive={pageNumber === currentPage} onClick={(event) => { event.preventDefault(); setPage(pageNumber); }}>{pageNumber}</PaginationLink></PaginationItem>
+            ))}
+            <PaginationItem><PaginationNext href="#" onClick={(event) => { event.preventDefault(); setPage((current) => Math.min(totalPages, current + 1)); }} aria-disabled={currentPage === totalPages} className={currentPage === totalPages ? "pointer-events-none opacity-50" : undefined} /></PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </TableCard.Root>
   );
 }

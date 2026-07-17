@@ -8,14 +8,20 @@ export async function GET(request: NextRequest) {
     const nilai = await getNilaiById(id);
 
     if (!nilai) {
-      return NextResponse.json({ error: "Nilai tidak ditemukan" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Nilai tidak ditemukan", status: 404, data: null },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json(nilai);
+    return NextResponse.json({ message: "Nilai ditemukan", status: 200, data: nilai });
   }
 
-  const data = await getNilais();
-  return NextResponse.json(data);
+  const page = Number(request.nextUrl.searchParams.get("page")) || 1;
+  const limit = Number(request.nextUrl.searchParams.get("limit")) || 10;
+
+  const data = await getNilais(page, limit);
+  return NextResponse.json({ message: "Daftar nilai berhasil diambil", status: 200, ...data });
 }
 
 export async function POST(request: NextRequest) {
@@ -23,10 +29,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = await createNilai(body);
 
-    return NextResponse.json(data, { status: 201 });
+    return NextResponse.json(
+      { message: "Nilai berhasil dibuat", status: 201, data },
+      { status: 201 }
+    );
   } catch (error) {
     return NextResponse.json(
-      { error: "Gagal membuat nilai", details: error },
+      { message: "Gagal membuat nilai", status: 400, data: null, details: error },
       { status: 400 }
     );
   }
@@ -38,14 +47,17 @@ export async function PUT(request: NextRequest) {
     const { id, ...data } = body;
 
     if (!id) {
-      return NextResponse.json({ error: "ID nilai wajib diisi" }, { status: 400 });
+      return NextResponse.json(
+        { message: "ID nilai wajib diisi", status: 400, data: null },
+        { status: 400 }
+      );
     }
 
     const result = await updateNilai(id, data);
-    return NextResponse.json(result);
+    return NextResponse.json({ message: "Nilai berhasil diubah", status: 200, data: result });
   } catch (error) {
     return NextResponse.json(
-      { error: "Gagal mengubah nilai", details: error },
+      { message: "Gagal mengubah nilai", status: 400, data: null, details: error },
       { status: 400 }
     );
   }
@@ -57,14 +69,17 @@ export async function DELETE(request: NextRequest) {
     const id = body?.id ?? request.nextUrl.searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ error: "ID nilai wajib diisi" }, { status: 400 });
+      return NextResponse.json(
+        { message: "ID nilai wajib diisi", status: 400, data: null },
+        { status: 400 }
+      );
     }
 
     const result = await deleteNilai(id);
-    return NextResponse.json(result);
+    return NextResponse.json({ message: "Nilai berhasil dihapus", status: 200, data: result });
   } catch (error) {
     return NextResponse.json(
-      { error: "Gagal menghapus nilai", details: error },
+      { message: "Gagal menghapus nilai", status: 400, data: null, details: error },
       { status: 400 }
     );
   }

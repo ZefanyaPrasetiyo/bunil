@@ -15,19 +15,19 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog/dialog";
 
-const jurusanOptions = ["DKV", "RPL", "ANIMASI", "TKJ", "BC", "TE"];
+const jurusanOptions = ["RPL", "TKJ", "DKV", "ANIMASI", "BC", "TE"];
 
 export type SiswaFormValues = {
   spmb: string;
   nama: string;
   jurusan: string;
-  password: string;
+  password?: string;
 };
 
 type StagedSiswa = SiswaFormValues & { id: string };
 
 interface DialogTambahSiswaProps {
-  onSubmit?: (values: SiswaFormValues[]) => void | Promise<void>;
+  onSubmit?: (values: Array<SiswaFormValues & { role: "USER" }>) => void | Promise<void>;
 }
 
 export function DialogTambahSiswa({ onSubmit }: DialogTambahSiswaProps) {
@@ -75,7 +75,9 @@ export function DialogTambahSiswa({ onSubmit }: DialogTambahSiswaProps) {
           spmb: siswa.spmb,
           nama: siswa.nama,
           jurusan: siswa.jurusan,
-          password: siswa.password,
+          // Password akun siswa selalu menggunakan nomor SPMB.
+          password: siswa.spmb,
+          role: "USER" as const,
         })),
       );
       setStagedSiswa([]);
@@ -118,7 +120,7 @@ export function DialogTambahSiswa({ onSubmit }: DialogTambahSiswaProps) {
 
           <div className="flex flex-col gap-2 rounded-lg border border-dashed border-border p-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
-              Template Excel: NO SPMB, Nama, Jurusan, Password.
+              Template Excel: NO SPMB, Nama, Jurusan. Password otomatis menggunakan NO SPMB.
             </p>
             <ImportDataSiswa
               existingSpmbs={stagedSiswa.map((siswa) => siswa.spmb)}
@@ -181,17 +183,9 @@ export function DialogTambahSiswa({ onSubmit }: DialogTambahSiswaProps) {
               htmlFor="password"
               className="sm:col-span-2"
             >
-              <input
-                id="password"
-                required
-                type="password"
-                value={values.password}
-                onChange={(event) =>
-                  handleChange("password", event.target.value)
-                }
-                placeholder="Buat password siswa"
-                className={inputClassName}
-              />
+              <p className="rounded-lg border border-input bg-muted px-3 py-2 text-sm text-muted-foreground">
+                Password otomatis menggunakan nomor SPMB.
+              </p>
             </Field>
             <div className="sm:col-span-2">
               <Button
@@ -212,7 +206,6 @@ export function DialogTambahSiswa({ onSubmit }: DialogTambahSiswaProps) {
                   <th className="p-3 font-medium">NO SPMB</th>
                   <th className="p-3 font-medium">Nama</th>
                   <th className="p-3 font-medium">Jurusan</th>
-                  <th className="p-3 font-medium">Password</th>
                   <th className="w-24 p-3 font-medium">Aksi</th>
                 </tr>
               </thead>
@@ -220,7 +213,7 @@ export function DialogTambahSiswa({ onSubmit }: DialogTambahSiswaProps) {
                 {stagedSiswa.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={4}
                       className="p-6 text-center text-muted-foreground"
                     >
                       Belum ada data pada staging.
@@ -279,21 +272,6 @@ export function DialogTambahSiswa({ onSubmit }: DialogTambahSiswaProps) {
                             </option>
                           ))}
                         </select>
-                      </td>
-                      <td className="p-2">
-                        <input
-                          aria-label={`Password ${siswa.nama}`}
-                          type="password"
-                          value={siswa.password}
-                          onChange={(event) =>
-                            updateStagedSiswa(
-                              siswa.id,
-                              "password",
-                              event.target.value,
-                            )
-                          }
-                          className={tableInputClassName}
-                        />
                       </td>
                       <td className="p-2">
                         <Button

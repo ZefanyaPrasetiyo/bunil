@@ -8,6 +8,7 @@ import {
   GraduationCap,
   LogOut,
 } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 import {
   Sidebar,
@@ -21,6 +22,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { authClient } from "@/lib/auth-client"
 
 type NavItem = {
   title: string
@@ -57,6 +59,9 @@ const currentUser = {
   role: "Guru",
 }
 
+
+
+
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -67,6 +72,16 @@ function getInitials(name: string) {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+const router = useRouter()
+  const logout = async() => {
+  await authClient.signOut({
+  fetchOptions: {
+    onSuccess: () => {
+      router.push("/login"); // redirect to login page
+    },
+  },
+});
+}
   const pathname = usePathname()
 
   return (
@@ -116,7 +131,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <button
                   type="button"
                   onClick={() => {
-                    // TODO: panggil fungsi sign-out dari auth kamu di sini.
+                    logout();
                   }}
                 />
               }

@@ -23,7 +23,9 @@ export const auth = betterAuth({
         
     },
     plugins: [
-        username()
+        username({
+            usernameValidator: (value) => /^[\p{L}0-9_. ]+$/u.test(value.trim()),
+        })
     ],
 
     logger: {

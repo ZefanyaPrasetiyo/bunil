@@ -8,13 +8,32 @@ type CreateNilaiInput = {
 
 type UpdateNilaiInput = Partial<CreateNilaiInput>;
 
-export async function getNilais() {
-  return prisma.nilai.findMany({
-    include: {
-      user: true,
-      mapel: true,
+export async function getNilais(page = 1, limit = 10) {
+  const currentPage = Math.max(1, Number(page) || 1);
+  const currentLimit = Math.max(1, Number(limit) || 10);
+  const skip = (currentPage - 1) * currentLimit;
+
+  const [nilais, totalItems] = await prisma.$transaction([
+    prisma.nilai.findMany({
+      include: {
+        user: true,
+        mapel: true,
+      },
+      skip,
+      take: currentLimit,
+    }),
+    prisma.nilai.count(),
+  ]);
+
+  return {
+    data: nilais,
+    pagination: {
+      page: currentPage,
+      limit: currentLimit,
+      totalItems,
+      totalPages: totalItems === 0 ? 0 : Math.ceil(totalItems / currentLimit),
     },
-  });
+  };
 }
 
 export async function getNilaiById(id: string) {

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ImportExcel, type ExcelColumn } from "@/components/ui/importExcel";
 
 const jurusanOptions = ["DKV", "RPL", "ANIMASI", "TKJ", "BC", "TE"] as const;
-type SiswaImportField = "spmb" | "nama" | "jurusan" | "password";
+type SiswaImportField = "spmb" | "nama" | "jurusan";
 
 export type SiswaImportValues = Record<SiswaImportField, string>;
 
@@ -14,7 +14,6 @@ const siswaColumns: ExcelColumn<SiswaImportField>[] = [
     { field: "spmb", label: "NO SPMB", aliases: ["SPMB", "NO_SPMB"], required: true },
     { field: "nama", label: "Nama", required: true },
     { field: "jurusan", label: "Jurusan", required: true },
-    { field: "password", label: "Password", required: true },
 ];
 
 interface ImportDataSiswaProps {
@@ -57,13 +56,13 @@ export function ImportDataSiswa({ existingSpmbs, onImport, onMessage }: ImportDa
             [],
             [],
             siswaColumns.map((column) => column.label),
-            ["SPMB-0001", "Nama Siswa", "RPL", "password-siswa"],
-            ...Array.from({ length: inputRowCount - 1 }, () => ["", "", "", ""]),
+            ["SPMB-0001", "Nama Siswa", "RPL"],
+            ...Array.from({ length: inputRowCount - 1 }, () => ["", "", ""]),
         ]);
-        worksheet["!cols"] = [{ wch: 18 }, { wch: 30 }, { wch: 14 }, { wch: 22 }];
-        worksheet["!merges"] = [XLSX.utils.decode_range("A1:D1"), XLSX.utils.decode_range("A2:D2")];
+        worksheet["!cols"] = [{ wch: 18 }, { wch: 30 }, { wch: 14 }];
+        worksheet["!merges"] = [XLSX.utils.decode_range("A1:C1"), XLSX.utils.decode_range("A2:C2")];
         worksheet["!rows"] = [{ hpt: 28 }, { hpt: 34 }, { hpt: 8 }, { hpt: 8 }];
-        worksheet["!autofilter"] = { ref: `A5:D${5 + inputRowCount}` };
+        worksheet["!autofilter"] = { ref: `A5:C${5 + inputRowCount}` };
 
         const border = { top: { style: "thin", color: { rgb: "CBD5E1" } }, bottom: { style: "thin", color: { rgb: "CBD5E1" } }, left: { style: "thin", color: { rgb: "CBD5E1" } }, right: { style: "thin", color: { rgb: "CBD5E1" } } };
         const titleStyle = { fill: { fgColor: { rgb: "1E3A8A" } }, font: { bold: true, color: { rgb: "FFFFFF" }, sz: 16 }, alignment: { horizontal: "center", vertical: "center" } };
@@ -75,7 +74,7 @@ export function ImportDataSiswa({ existingSpmbs, onImport, onMessage }: ImportDa
         ["A1", "A2"].forEach((cell, index) => {
             if (worksheet[cell]) worksheet[cell].s = index === 0 ? titleStyle : descriptionStyle;
         });
-        ["A", "B", "C", "D"].forEach((column) => {
+        ["A", "B", "C"].forEach((column) => {
             if (worksheet[`${column}5`]) worksheet[`${column}5`].s = headerStyle;
             for (let row = 6; row <= 5 + inputRowCount; row += 1) {
                 if (worksheet[`${column}${row}`]) worksheet[`${column}${row}`].s = row === 6 ? exampleStyle : inputStyle;

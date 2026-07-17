@@ -21,8 +21,7 @@ async function createUser(data: {
   password: string;
   role: Role;
   jurusan?: Jurusan;
-  no_spmb?: string;
-  nama?: string;
+  name?: string;
 }) {
   const hash = await bcrypt.hash(data.password, 10);
   console.log("===========", hash)
@@ -30,8 +29,7 @@ async function createUser(data: {
   const user = await prisma.user.create({
     data: {
       username: data.username,
-      no_spmb: data.no_spmb,
-      nama: data.nama,
+      name: data.name,
       jurusan: data.jurusan,
       role: data.role,
       password: hash,
@@ -69,15 +67,13 @@ async function main() {
     username: "jepan",
     password: "jepan2903",
     role: Role.ADMIN,
-    nama: "Administrator",
+    name: "Administrator",
   });
 
   const budi = await createUser({
     username: "budi",
     password: "SPMB001",
     role: Role.USER,
-    nama: "Budi",
-    no_spmb: "SPMB001",
     jurusan: Jurusan.RPL,
   });
 
@@ -85,8 +81,6 @@ async function main() {
     username: "andi",
     password: "SPMB002",
     role: Role.USER,
-    nama: "Andi",
-    no_spmb: "SPMB002",
     jurusan: Jurusan.DKV,
   });
 
@@ -110,7 +104,7 @@ async function main() {
     ],
   });
 
-  console.log("✅ Seed selesai");
+  console.log("Seed selesai");
 }
 
 main()

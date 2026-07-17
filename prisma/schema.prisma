@@ -12,8 +12,6 @@ model User {
   id       String   @id @default(uuid())
   username String   @unique
   password String
-  no_spmb  String?
-  nama     String?
   jurusan  Jurusan?
   role     Role
 
