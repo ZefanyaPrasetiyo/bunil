@@ -23,7 +23,7 @@ export type SiswaUpdate = {
     password?: string;
 };
 
-type SiswaEditable = SiswaUpdate & { id: string };
+type SiswaEditable = SiswaUpdate & { id: string; spmbValue?: string };
 
 interface DialogEditSiswaProps {
     row: SiswaEditable;
@@ -124,7 +124,7 @@ export function DialogHapusSiswa({ nama, onConfirm }: DialogHapusSiswaProps) {
 const inputClassName = "w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none";
 
 function createValues(row: SiswaEditable): SiswaUpdate {
-    return { spmb: row.spmb, nama: row.nama, jurusan: row.jurusan, password: "" };
+    return { spmb: row.spmbValue ?? row.spmb, nama: row.nama, jurusan: row.jurusan, password: "" };
 }
 
 function Field({ label, htmlFor, children, className }: { label: string; htmlFor: string; children: React.ReactNode; className?: string }) {

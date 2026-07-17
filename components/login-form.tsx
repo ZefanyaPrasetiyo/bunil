@@ -36,28 +36,40 @@ const [loading, setLoading] = useState(false);
 
 const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
+  setLoading(true);
 
-  console.log("Login:", {
-    username: nama,
-    password: noSpmb,
-  });
+  try {
+    console.log("Login:", {
+      username: nama,
+      password: noSpmb,
+    });
 
-  const { data, error } = await authClient.signIn.username({
-    username: nama,
-    password: noSpmb,
-  });
+    const { data, error } = await authClient.signIn.username({
+      username: nama,
+      password: noSpmb,
+    });
 
-  console.log("DATA:", data);
-  console.log("ERROR:", error);
+    console.log("DATA:", data);
+    console.log("ERROR:", error);
 
-  if (error) {
-    alert(error.message);
-    return;
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    const role =
+      (data as { user?: { role?: string }; session?: { user?: { role?: string } } } | undefined)
+        ?.user?.role ??
+      (data as { user?: { role?: string }; session?: { user?: { role?: string } } } | undefined)
+        ?.session?.user?.role ??
+      "USER";
+
+    console.log("LOGIN BERHASIL", { role });
+
+    router.replace(role === "ADMIN" ? "/dashboard" : "/dashboard/nilai-saya");
+  } finally {
+    setLoading(false);
   }
-
-  console.log("LOGIN BERHASIL");
-
-  router.replace("/dashboard");
 };
 
   return (
