@@ -100,14 +100,15 @@ const TableCardHeader = ({ title, badge, description, contentTrailing, className
 
 interface TableRootProps extends AriaTableProps, Omit<ComponentPropsWithRef<"table">, "className" | "slot" | "style"> {
     size?: "sm" | "md";
+    scrollContainerProps?: HTMLAttributes<HTMLDivElement>;
 }
 
-const TableRoot = ({ className, size = "md", ...props }: TableRootProps) => {
+const TableRoot = ({ className, size = "md", scrollContainerProps, ...props }: TableRootProps) => {
     const context = useContext(TableContext);
 
     return (
         <TableContext.Provider value={{ size: context?.size ?? size }}>
-            <div className="max-h-[90vh] overflow-x-auto overflow-y-auto">
+            <div {...scrollContainerProps} className={cx("max-h-[90vh] overflow-x-auto overflow-y-auto", scrollContainerProps?.className)}>
                 <AriaTable className={(state) => cx("w-full overflow-x-hidden", typeof className === "function" ? className(state) : className)} {...props} />
             </div>
         </TableContext.Provider>
@@ -224,7 +225,7 @@ const TableRow = <T extends object>({ columns, children, className, highlightSel
                     "relative outline-ring transition-colors after:pointer-events-none  focus-visible:outline-2 focus-visible:-outline-offset-2",
                     size === "sm" ? "h-14" : "h-18",
                     highlightSelectedRow && "selected:bg-muted",
-                    "[&>td]:after:absolute [&>td]:after:inset-x-0 [&>td]:after:bottom-0 [&>td]:after:h-px [&>td]:after:w-full [&>td]:after:bg-border last:[&>td]:after:hidden [&>td]:focus-visible:after:opacity-0 focus-visible:[&>td]:after:opacity-0",
+                    "[&>td]:after:absolute [&>td]:after:inset-x-0 [&>td]:after:bottom-0 [&>td]:after:h-px [&>td]:after:w-full [&>td]:after:bg-border last:[&>td]:after:hidden focus-visible:[&>td]:after:opacity-0",
                     typeof className === "function" ? className(state) : className,
                 )
             }
