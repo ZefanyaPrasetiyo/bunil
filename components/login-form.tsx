@@ -37,20 +37,25 @@ const [loading, setLoading] = useState(false);
 const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
 
-  setLoading(true);
+  console.log("Login:", {
+    username: nama,
+    password: noSpmb,
+  });
 
   const { data, error } = await authClient.signIn.username({
     username: nama,
     password: noSpmb,
-
   });
-  console.log(nama, noSpmb);
-  setLoading(false);
+
+  console.log("DATA:", data);
+  console.log("ERROR:", error);
 
   if (error) {
     alert(error.message);
     return;
   }
+
+  console.log("LOGIN BERHASIL");
 
   router.replace("/dashboard");
 };

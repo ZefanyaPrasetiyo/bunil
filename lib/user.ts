@@ -5,6 +5,7 @@ import type { Jurusan, Role } from "../app/generated/prisma/client";
 type CreateUserInput = {
   no_spmb?: string;
   nama: string;
+  username: string;
   password?: string;
   jurusan?: Jurusan | null;
   role: Role;
@@ -36,6 +37,7 @@ export async function createUser(data: CreateUserInput) {
     data: {
       no_spmb: data.no_spmb,
       nama: data.nama,
+      username: data.username,
       password: hashedPassword,
       jurusan: data.jurusan,
       role: data.role,
