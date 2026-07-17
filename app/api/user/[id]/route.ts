@@ -26,6 +26,7 @@ export async function PUT(
 
     return NextResponse.json(user);
   } catch (error) {
+     console.error(error);
     return NextResponse.json(
       { error: "Gagal mengubah user", details: error },
       { status: 400 }

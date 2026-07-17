@@ -2,6 +2,7 @@ import "dotenv/config";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, Role, Jurusan } from "@/app/generated/prisma/client";
+import bcrypt from "bcryptjs";
 
 const connectionString = process.env.DATABASE_URL!;
 
@@ -15,66 +16,79 @@ const prisma = new PrismaClient({
   adapter,
 });
 
+async function createUser(data: {
+  username: string;
+  password: string;
+  role: Role;
+  jurusan?: Jurusan;
+  no_spmb?: string;
+  nama?: string;
+}) {
+  const hash = await bcrypt.hash(data.password, 10);
+  console.log("===========", hash)
+
+  const user = await prisma.user.create({
+    data: {
+      username: data.username,
+      no_spmb: data.no_spmb,
+      nama: data.nama,
+      jurusan: data.jurusan,
+      role: data.role,
+      password: hash,
+    },
+  });
+
+  await prisma.account.create({
+    data: {
+      id: crypto.randomUUID(),
+      accountId: data.username,
+      providerId: "credential",
+      userId: user.id,
+      password: hash,
+    },
+  });
+
+  return user;
+}
 async function main() {
   console.log("🌱 Seeding database...");
 
-  // ===========================
-  // Mata Pelajaran
-  // ===========================
+  const [matematika, indonesia, inggris] = await Promise.all([
+    prisma.mataPelajaran.create({
+      data: { nama: "Matematika" },
+    }),
+    prisma.mataPelajaran.create({
+      data: { nama: "Bahasa Indonesia" },
+    }),
+    prisma.mataPelajaran.create({
+      data: { nama: "Bahasa Inggris" },
+    }),
+  ]);
 
-  const matematika = await prisma.mataPelajaran.create({
-    data: {
-      nama: "Matematika",
-    },
+  const admin = await createUser({
+    username: "jepan",
+    password: "jepan2903",
+    role: Role.ADMIN,
+    nama: "Administrator",
   });
 
-  const indonesia = await prisma.mataPelajaran.create({
-    data: {
-      nama: "Bahasa Indonesia",
-    },
+  const budi = await createUser({
+    username: "budi",
+    password: "SPMB001",
+    role: Role.USER,
+    nama: "Budi",
+    no_spmb: "SPMB001",
+    jurusan: Jurusan.RPL,
   });
 
-  const inggris = await prisma.mataPelajaran.create({
-    data: {
-      nama: "Bahasa Inggris",
-    },
+  const andi = await createUser({
+    username: "andi",
+    password: "SPMB002",
+    role: Role.USER,
+    nama: "Andi",
+    no_spmb: "SPMB002",
+    jurusan: Jurusan.DKV,
   });
-
-  // ===========================
-  // User
-  // ===========================
-
-  const budi = await prisma.user.create({
-    data: {
-      nama: "Budi",
-      no_spmb: "SPMB001",
-      password: "123456",
-      jurusan: Jurusan.RPL,
-      role: Role.USER,
-    },
-  });
-
-  const andi = await prisma.user.create({
-    data: {
-      nama: "Andi",
-      no_spmb: "SPMB002",
-      password: "123456",
-      jurusan: Jurusan.DKV,
-      role: Role.USER,
-    },
-  });
-
-  const admin = await prisma.user.create({
-    data: {
-      nama: "Administrator",
-      password: "admin123",
-      role: Role.ADMIN,
-    },
-  });
-
-  // ===========================
-  // Nilai
-  // ===========================
 
   await prisma.nilai.createMany({
     data: [
@@ -101,6 +115,7 @@ async function main() {
 
 main()
   .then(async () => {
+    console.log("🎉 Seed berhasil");
     await prisma.$disconnect();
     await pool.end();
   })

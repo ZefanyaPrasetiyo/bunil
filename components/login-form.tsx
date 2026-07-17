@@ -12,6 +12,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
+import { useRouter } from "next/navigation"
 import {
   Card,
   CardContent,
@@ -21,12 +22,43 @@ import {
 } from "@/components/ui/card"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { authClient } from "@/lib/auth-client"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const [showPassword, setShowPassword] = useState(false)
+  const [nama, setNama] = useState("")
+  const [noSpmb, setNoSpmb] = useState("")
+  const router = useRouter()
+const [loading, setLoading] = useState(false);
+
+const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+
+  console.log("Login:", {
+    username: nama,
+    password: noSpmb,
+  });
+
+  const { data, error } = await authClient.signIn.username({
+    username: nama,
+    password: noSpmb,
+  });
+
+  console.log("DATA:", data);
+  console.log("ERROR:", error);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  console.log("LOGIN BERHASIL");
+
+  router.replace("/dashboard");
+};
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -52,19 +84,21 @@ export function LoginForm({
         </CardHeader>
 
         <CardContent>
-          <form>
+         <form onSubmit={handleLogin}>
             <FieldGroup className="gap-5">
               <Field>
                 <FieldLabel htmlFor="username">Nama Pengguna</FieldLabel>
                 <div className="relative">
                   <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
-                  <Input
-                    id="username"
-                    type="text"
-                    placeholder="Username"
-                    required
-                    className="pl-9"
-                  />
+                 <Input
+  id="username"
+  type="text"
+  placeholder="Username"
+  required
+  className="pl-9"
+  value={nama}
+  onChange={(e) => setNama(e.target.value)}
+/>
                 </div>
               </Field>
 
@@ -72,12 +106,15 @@ export function LoginForm({
                 <FieldLabel htmlFor="password">Kata Sandi</FieldLabel>
                 <div className="relative">
                   <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    required
-                    className="pl-9 pr-9"
-                  />
+               <Input
+  id="no_spmb"
+  type="text"
+  placeholder="No. SPMB"
+  required
+  className="pl-9"
+  value={noSpmb}
+  onChange={(e) => setNoSpmb(e.target.value)}
+/>
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
@@ -96,9 +133,9 @@ export function LoginForm({
               </Field>
 
               <Field>
-                <Button variant="secondary" className="w-full" >
-                  <Link href="/dashboard/">Masuk</Link>
-                </Button>
+            <Button type="submit" disabled={loading}>
+  {loading ? "Loading..." : "Login"}
+</Button>
               </Field>
             </FieldGroup>
           </form>
