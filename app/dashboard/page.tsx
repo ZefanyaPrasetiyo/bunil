@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { KeyRound, Search } from "lucide-react";
+import { toast } from "sonner";
 import { TableManajemenAkun, type ManajemenAkunRow } from "@/components/application/table/table-manajemenAkun";
 import { DialogTambahSiswa } from "@/components/ui/dialog/dialogAddSiswa";
 // import type { SiswaUpdate } from "@/components/ui/dialog/dialogEdit/dialogEditSiswa";
@@ -93,10 +94,16 @@ export default function Dashboard() {
         })).catch((err: unknown) => {
             const message = err instanceof Error ? err.message : "Gagal menambahkan akun siswa.";
             setError(message);
+            toast.error("Gagal membuat akun siswa", {
+                description: message,
+            });
             throw new Error(message);
         });
 
         setData((current) => [...current, ...toTableRows(created).map((row, index) => ({ ...row, no: current.length + index + 1 }))]);
+        toast.success("Akun siswa berhasil dibuat", {
+            description: `${valuesList.length} akun siswa telah ditambahkan.`,
+        });
     }
 
     async function updateSiswa(id: string, values: SiswaPayload) {
@@ -114,11 +121,17 @@ export default function Dashboard() {
         if (!response.ok) {
             const message = await getErrorMessage(response);
             setError(message);
+            toast.error("Gagal memperbarui akun siswa", {
+                description: message,
+            });
             throw new Error(message);
         }
 
         const updated = (await response.json()) as UserApi;
         setData((current) => current.map((row) => row.id === id ? { ...toTableRows([updated])[0], no: row.no } : row));
+        toast.success("Akun siswa berhasil diperbarui", {
+            description: `Akun siswa telah diubah.`,
+        });
     }
 
     async function deleteSiswa(id: string) {
@@ -127,10 +140,16 @@ export default function Dashboard() {
         if (!response.ok) {
             const message = await getErrorMessage(response);
             setError(message);
+            toast.error("Gagal menghapus akun siswa", {
+                description: message,
+            });
             throw new Error(message);
         }
 
         setData((current) => current.filter((row) => row.id !== id).map((row, index) => ({ ...row, no: index + 1 })));
+        toast.success("Akun siswa berhasil dihapus", {
+            description: "Akun siswa telah dihapus dari sistem.",
+        });
     }
 
     const filteredData = data.filter((row) => [row.nama, row.jurusan, row.spmb].join(" ").toLowerCase().includes(query.toLowerCase()));

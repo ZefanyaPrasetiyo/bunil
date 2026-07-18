@@ -93,7 +93,7 @@ enum Jurusan {
   RPL
   ANIMASI
   TKJ
-  BC
+  PSPT
   TE
 }
 

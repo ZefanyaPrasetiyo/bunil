@@ -9,6 +9,7 @@ import {
   SlidersHorizontal,
   ArrowUpDown,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
   TableNilaiSiswa,
   type Mapel,
@@ -65,30 +66,6 @@ function average(row: NilaiSiswaRow) {
   return values.length
     ? values.reduce((sum, value) => sum + value, 0) / values.length
     : 0;
-}
-
-function mapUserToRow(user: UserApiItem, index: number, nilaiRecords: NilaiRecord[]): NilaiSiswaRow {
-    const row: NilaiSiswaRow = {
-        id: user.id,
-        no: index + 1,
-        spmb: user.no_spmb || "-",
-        nama: user.nama || user.username || "Tanpa nama",
-        jurusan: user.jurusan || "-",
-        nilai: {},
-    };
-
-    nilaiRecords
-        .filter((item) => item.userId === user.id)
-        .forEach((item) => {
-            row.nilai[item.mapelId] = item.nilai;
-        });
-
-    return row;
-}
-
-function buildUsername(values: Pick<NilaiSiswaFormValues, "spmb" | "nama">) {
-    const base = `${values.spmb || values.nama}`.trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
-    return base || `siswa${Math.floor(Math.random() * 1000)}`;
 }
 
 export default function NilaiSiswa() {
@@ -188,10 +165,16 @@ export default function NilaiSiswa() {
         }),
       );
       await loadData();
+      toast.success("Nilai berhasil disimpan", {
+        description: `${valuesList.length} siswa telah diperbarui nilainya.`,
+      });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Gagal menyimpan nilai siswa.";
       setError(message);
+      toast.error("Gagal menyimpan nilai", {
+        description: message,
+      });
       throw new Error(message);
     }
   }
@@ -256,10 +239,16 @@ export default function NilaiSiswa() {
           }),
       );
       await loadData();
+      toast.success("Nilai siswa berhasil diperbarui", {
+        description: `Data siswa ${values.nama} telah diubah.`,
+      });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Gagal mengubah nilai siswa.";
       setError(message);
+      toast.error("Gagal memperbarui nilai siswa", {
+        description: message,
+      });
       throw new Error(message);
     }
   }
@@ -280,10 +269,16 @@ export default function NilaiSiswa() {
           }),
       );
       await loadData();
+      toast.success("Nilai siswa berhasil dihapus", {
+        description: "Data nilai siswa telah dihapus dari sistem.",
+      });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Gagal menghapus nilai siswa.";
       setError(message);
+      toast.error("Gagal menghapus nilai siswa", {
+        description: message,
+      });
       throw new Error(message);
     }
   }

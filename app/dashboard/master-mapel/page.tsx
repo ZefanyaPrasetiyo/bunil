@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { BookOpen, Search } from "lucide-react";
+import { toast } from "sonner";
 import { TableMasterMapel, type MasterMapelRow } from "@/components/application/table/table-masterMapel";
 import { DialogTambahMapel, type MapelFormValues } from "@/components/ui/dialog/dialogAddMapel";
 import type { MapelUpdate } from "@/components/ui/dialog/dialogEdit/dialogEditMapel";
@@ -83,9 +84,16 @@ export default function MasterMapel() {
 
       if (payload.data) {
         setData((current) => [...current, mapMapelToRow(payload.data!, current.length)]);
+        toast.success("Mata pelajaran berhasil dibuat", {
+          description: `Mata pelajaran "${values.nama}" telah ditambahkan.`,
+        });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal membuat mata pelajaran");
+      const message = err instanceof Error ? err.message : "Gagal membuat mata pelajaran";
+      setError(message);
+      toast.error("Gagal membuat mata pelajaran", {
+        description: message,
+      });
     }
   }
 
@@ -105,9 +113,16 @@ export default function MasterMapel() {
 
       if (payload.data) {
         setData((current) => current.map((row) => (row.id === id ? mapMapelToRow(payload.data!, current.findIndex((item) => item.id === id)) : row)));
+        toast.success("Mata pelajaran berhasil diperbarui", {
+          description: `Mata pelajaran telah diubah menjadi "${values.nama}".`,
+        });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal memperbarui mata pelajaran");
+      const message = err instanceof Error ? err.message : "Gagal memperbarui mata pelajaran";
+      setError(message);
+      toast.error("Gagal memperbarui mata pelajaran", {
+        description: message,
+      });
     }
   }
 
@@ -126,8 +141,15 @@ export default function MasterMapel() {
       }
 
       setData((current) => current.filter((row) => row.id !== id).map((row, index) => ({ ...row, no: index + 1 })));
+      toast.success("Mata pelajaran berhasil dihapus", {
+        description: "Mata pelajaran telah dihapus dari sistem.",
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal menghapus mata pelajaran");
+      const message = err instanceof Error ? err.message : "Gagal menghapus mata pelajaran";
+      setError(message);
+      toast.error("Gagal menghapus mata pelajaran", {
+        description: message,
+      });
     }
   }
 

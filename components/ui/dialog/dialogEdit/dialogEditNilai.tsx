@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog/dialog";
 
 type MapelOption = { id: string; nama: string };
-const jurusanOptions = ["DKV", "RPL", "ANIMASI", "TKJ", "BC", "TE"];
+const jurusanOptions = ["DKV", "RPL", "ANIMASI", "TKJ", "PSPT", "TE"];
 
 export type NilaiSiswaUpdate = {
   spmb: string;
