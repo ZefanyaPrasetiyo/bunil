@@ -17,7 +17,7 @@ import {
 
 type MapelOption = { id: string; nama: string };
 type SiswaOption = { spmb: string; nama: string; jurusan: string };
-const jurusanOptions = ["DKV", "RPL", "ANIMASI", "TKJ", "PSPT", "TE"];
+const jurusanOptions = ["DKV", "RPL", "ANIMASI", "TKJ", "BC", "TE"]; 
 
 export type NilaiSiswaFormValues = {
   spmb: string;

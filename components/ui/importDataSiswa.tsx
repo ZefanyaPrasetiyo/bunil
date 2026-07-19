@@ -5,7 +5,7 @@ import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ImportExcel, type ExcelColumn } from "@/components/ui/importExcel";
 
-const jurusanOptions = ["DKV", "RPL", "ANIMASI", "TKJ", "PSPT", "TE"] as const;
+const jurusanOptions = ["DKV", "RPL", "ANIMASI", "TKJ", "BC", "TE"] as const;
 type SiswaImportField = "spmb" | "nama" | "jurusan";
 
 export type SiswaImportValues = Record<SiswaImportField, string>;

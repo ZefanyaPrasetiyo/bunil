@@ -23,6 +23,7 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { authClient } from "@/lib/auth-client"
+import { toast } from "sonner"
 
 export function LoginForm({
   className,
@@ -65,6 +66,8 @@ const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
       "USER";
 
     console.log("LOGIN BERHASIL", { role });
+
+    toast.success("Login berhasil");
 
     router.replace(role === "ADMIN" ? "/dashboard" : "/dashboard/nilai-saya");
   } finally {
